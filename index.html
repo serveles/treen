@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> App Treen   </title>
+
+    <!-- Meta tags para redes sociales -->
+    <meta property="og:title" content=" App Treen  ">
+    <meta property="og:description" content="¡Todo en un solo lugar!">
+    <meta property="og:image" content="https://app.netlify.com/f.png">
+    <meta property="og:url" content="https://app.netlify.com">
+    <meta property="og:type" content="website">
+
+  
+
+  </head>
+
+
+
+
+
+<script>
+
+
+
+
+const REGISTRY = "https://raw.githubusercontent.com/servemza/tunnel/main/tunnels.json";
+let API_URL, API;
+const CLIENTE_ID = "56";
+
+
+
+
+function getTunnels() {
+  return fetch(`${REGISTRY}?t=${Date.now()}`, { cache: "no-store" })
+    .then(res => {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    });
+}
+
+
+
+getTunnels().then(data => {
+
+
+
+API_URL = API = data["80"]?.url;
+  
+class UrlParams {  constructor() { this.params = new URLSearchParams(window.location.search); }  get(key) { return this.params.get(key); } }
+const url = new UrlParams();
+
+
+console.log(API_URL);
+
+
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+  </script>
+
+</body>
+
+
+</html>
