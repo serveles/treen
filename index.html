@@ -59,6 +59,11 @@ class UrlParams {
 
         const destination = new URL(API_URL);
 
+        // Conservar la ruta original
+        destination.pathname =
+            destination.pathname.replace(/\/$/, "") +
+            window.location.pathname;
+
         // Conservar todos los parámetros originales
         url.params.forEach((value, key) => {
             destination.searchParams.append(key, value);
