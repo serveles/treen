@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -23,28 +22,42 @@
             background: #000;
             overflow: hidden;
         }
+
+        #app {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #000;
+        }
+
+        #msg {
+            position: fixed;
+            inset: 0;
+            display: none;
+            place-items: center;
+            color: #888;
+            font: 14px system-ui, sans-serif;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+
+<iframe id="app" title="Treen"
+        allow="fullscreen; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+        allowfullscreen></iframe>
+<div id="msg">No se pudo conectar. Intenta de nuevo en unos minutos.</div>
 
 <script>
 const REGISTRY = "https://raw.githubusercontent.com/servemza/tunnel/main/tunnels.json";
 const CLIENTE_ID = "56";
 
-class UrlParams {
-    constructor() {
-        this.params = new URLSearchParams(window.location.search);
-    }
-
-    get(key) {
-        return this.params.get(key);
-    }
-}
+const frame = document.getElementById("app");
 
 (async () => {
     try {
-        const url = new UrlParams();
-
         const response = await fetch(
             `${REGISTRY}?t=${Date.now()}`,
             { cache: "no-store" }
@@ -58,21 +71,44 @@ class UrlParams {
         if (!API_URL) throw new Error("Túnel no disponible");
 
         const destination = new URL(API_URL);
+        const origenApp = destination.origin;
 
-        // Conservar la ruta original
+        // Conservar la ruta, los parámetros y el hash originales
         destination.pathname =
             destination.pathname.replace(/\/$/, "") +
             window.location.pathname;
+        destination.search = window.location.search;
+        destination.hash = window.location.hash;
 
-        // Conservar todos los parámetros originales
-        url.params.forEach((value, key) => {
-            destination.searchParams.append(key, value);
+        // La app (dentro del iframe) avisa su ruta al terminar de cargar:
+        // aquí solo se actualiza la barra de este dominio (sin recargar ni navegar).
+        window.addEventListener("message", (e) => {
+            if (e.origin !== origenApp || e.source !== frame.contentWindow) return;
+            const d = e.data;
+            if (!d || d.tipo !== "treen-url") return;
+
+            const path   = String(d.path || "/");
+            const search = String(d.search || "");
+            const hash   = String(d.hash || "");
+            if (!/^\/(?!\/)/.test(path)) return;
+            if (search && search[0] !== "?") return;
+            if (hash && hash[0] !== "#") return;
+
+            const nueva = path + search + hash;
+            if (nueva !== location.pathname + location.search + location.hash) {
+                history.replaceState(null, "", nueva);
+            }
+            if (typeof d.title === "string" && d.title) {
+                document.title = d.title.slice(0, 200);
+            }
         });
 
-        window.location.replace(destination.toString());
+        frame.src = destination.toString();
 
     } catch (error) {
-        console.error("Error de redirección:", error);
+        console.error("Error de conexión:", error);
+        document.getElementById("msg").style.display = "grid";
+        frame.style.display = "none";
     }
 })();
 </script>
