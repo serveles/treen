@@ -1,77 +1,76 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> App Treen   </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>App Treen</title>
 
-    <!-- Meta tags para redes sociales -->
-    <meta property="og:title" content=" App Treen  ">
+    <meta property="og:title" content="App Treen">
     <meta property="og:description" content="¡Todo en un solo lugar!">
     <meta property="og:image" content="https://app.netlify.com/f.png">
     <meta property="og:url" content="https://app.netlify.com">
     <meta property="og:type" content="website">
 
-  
+    <meta name="theme-color" content="#000000">
 
-  </head>
+    <style>
+        * { margin: 0; padding: 0; }
 
-
-
-
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
 
 <script>
-
-
-
-
 const REGISTRY = "https://raw.githubusercontent.com/servemza/tunnel/main/tunnels.json";
-let API_URL, API;
 const CLIENTE_ID = "56";
 
+class UrlParams {
+    constructor() {
+        this.params = new URLSearchParams(window.location.search);
+    }
 
-
-
-function getTunnels() {
-  return fetch(`${REGISTRY}?t=${Date.now()}`, { cache: "no-store" })
-    .then(res => {
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
-    });
+    get(key) {
+        return this.params.get(key);
+    }
 }
 
+(async () => {
+    try {
+        const url = new UrlParams();
 
+        const response = await fetch(
+            `${REGISTRY}?t=${Date.now()}`,
+            { cache: "no-store" }
+        );
 
-getTunnels().then(data => {
+        if (!response.ok) throw new Error("HTTP " + response.status);
 
+        const data = await response.json();
+        const API_URL = data["80"]?.url;
 
+        if (!API_URL) throw new Error("Túnel no disponible");
 
-API_URL = API = data["80"]?.url;
-  
-class UrlParams {  constructor() { this.params = new URLSearchParams(window.location.search); }  get(key) { return this.params.get(key); } }
-const url = new UrlParams();
+        const destination = new URL(API_URL);
 
+        // Conservar todos los parámetros originales
+        url.params.forEach((value, key) => {
+            destination.searchParams.append(key, value);
+        });
 
-console.log(API_URL);
+        window.location.replace(destination.toString());
 
-
-
-
-});
-
-
-
-
-
-
-
-
-
-
-
-  </script>
+    } catch (error) {
+        console.error("Error de redirección:", error);
+    }
+})();
+</script>
 
 </body>
-
-
 </html>
